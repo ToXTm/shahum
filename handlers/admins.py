@@ -125,13 +125,14 @@ def broad(client,message):
                             res = bot("sendMessage",{"chat_id":i.decode(),"text":message.text,"parse_mode":"MarkDown"})
                             data.srem(bot_id+"-mediapy-chats",i.decode()) if res["ok"] != True else print(True)
                 except Exception:
-                    try:
-                        if members != None:
-                            for i in members:
-                                res = bot("sendMessage",{"chat_id":i.decode(),"text":message.text})
-                                data.srem(bot_id+"-mediapy-members",i.decode()) if res["ok"] != True else print(True)
-                    except Exception:
-                        pass
+                    pass
+                try:
+                    if members != None:
+                        for i in members:
+                            res = bot("sendMessage",{"chat_id":i.decode(),"text":message.text})
+                            data.srem(bot_id+"-mediapy-members",i.decode()) if res["ok"] != True else print(True)
+                except Exception:
+                    pass
                 os.system("service redis restart")
                 os.system("service redis-server restart")
                 os.system("service redis start")
