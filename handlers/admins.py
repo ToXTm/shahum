@@ -4,7 +4,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import re
 import redis
 from utils.config import token,bot_id,sudo
-from utils.func import app,channel_id,motors,bot,admins,manager,sudos,add,channel
+from utils.func import app,channel_id,motors,bot,admins,manager,sudos,channel
 
 
 data = redis.Redis("127.0.0.1",6379)
