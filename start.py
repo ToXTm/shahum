@@ -1,6 +1,5 @@
 import os
 import re
-import json
 from sys import path
 
 

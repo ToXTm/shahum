@@ -1,7 +1,5 @@
 import datetime
-import time
-import pyrogram
-from utils.func import bot,app,admins,motors,manager,sudos,add,channel_id,channel
+from utils.func import bot,app,admins,motors,manager,sudos,channel_id,channel
 import redis
 from utils.config import sudo,token,bot_id
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton

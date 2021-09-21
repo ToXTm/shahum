@@ -111,24 +111,49 @@ def broad(client,message):
     if str(message.from_user.id) == str(sudo):
         if data.get(bot_id+"-mediapy-wait"):
             if data.get(bot_id+"-mediapy-wait").decode() == "broad":
-                chats = data.sinter(bot_id+"-mediapy-chats") if data.sinter(bot_id+"-mediapy-chats") else None
-                members = data.sinter(bot_id+"-mediapy-members") if data.sinter(bot_id+"-mediapy-chats") else None
-                if chats != None:
-                    for i in chats:
-                        res = bot("sendMessage",{"chat_id":i.decode(),"text":message.text,"parse_mode":"MarkDown"})
-                        data.srem(bot_id+"-mediapy-chats",i.decode()) if res["ok"] != True else print(True)
-                if members != None:
-                    for i in members:
-                        res = bot("sendMessage",{"chat_id":i.decode(),"text":message.text})
-                        data.srem(bot_id+"-mediapy-members",i.decode()) if res["ok"] != True else print(True)
+                try:
+                    chats = data.sinter(bot_id+"-mediapy-chats") if data.sinter(bot_id+"-mediapy-chats") else None
+                except Exception:
+                    chats = None
+                try:
+                    members = data.sinter(bot_id+"-mediapy-members") if data.sinter(bot_id+"-mediapy-chats") else None
+                except Exception:
+                    members = None
+                try:
+                    if chats != None:
+                        for i in chats:
+                            res = bot("sendMessage",{"chat_id":i.decode(),"text":message.text,"parse_mode":"MarkDown"})
+                            data.srem(bot_id+"-mediapy-chats",i.decode()) if res["ok"] != True else print(True)
+                except Exception:
+                    try:
+                        if members != None:
+                            for i in members:
+                                res = bot("sendMessage",{"chat_id":i.decode(),"text":message.text})
+                                data.srem(bot_id+"-mediapy-members",i.decode()) if res["ok"] != True else print(True)
+                    except Exception:
+                        pass
                 os.system("service redis restart")
                 os.system("service redis-server restart")
                 os.system("service redis start")
                 os.system("service redis-server start")
-                c_chats = len(chats) if chats != None else 0
-                c_members = len(members) if members != None else 0
-                members = str(c_chats+c_members)
-                bot("sendMessage",{"chat_id":sudo,"text":"تمت الاذاعه الى {} من المجموعات والمشتركين".format(members)})
+                try:
+                    chats = data.sinter(bot_id+"-mediapy-chats") if data.sinter(bot_id+"-mediapy-chats") else None
+                except Exception:
+                    chats = None
+                try:
+                    members = data.sinter(bot_id+"-mediapy-members") if data.sinter(bot_id+"-mediapy-chats") else None
+                except Exception:
+                    members = None
+                try:
+                    c_chats = len(chats) if chats != None else 0
+                except Exception:
+                    c_chats = 0
+                try:
+                    c_members = len(members) if members != None else 0
+                except Exception:
+                    c_members = 0
+                cmembers = str(c_chats+c_members)
+                bot("sendMessage",{"chat_id":sudo,"text":"تمت الاذاعه الى {} من المجموعات والمشتركين".format(cmembers)})
                 data.delete(bot_id+"-mediapy-wait")
 
 def c_count(client,message):
@@ -274,8 +299,7 @@ def new(client,message):
         if str(user_id) == str(sudo):
             if text == "مسح المطورين":
                 txt = str(str(text).split(sep=" ")[1])
-                rr = "del-motors"
-                add(chat_id,user_id,txt,rr,user_id)
+                data.delete(bot_id+"-mediapy-motor")
                 bot('sendMessage',{"chat_id":chat_id,"text":"تم مسح المطورين بنجاح","reply_to_message_id":message_id,"parse_mode":"MarkDown"})
             elif text == "رفع مطور" or text == "اضف مطور":
                 data.set(bot_id+"-mediapy-wait","True")
@@ -317,7 +341,7 @@ def new(client,message):
                     user = app.get_users(str(message.text))
                     if user:
                         txt = f" تم تنزيل العضو {user.first_name} مطور بنجاح"
-                        data.sadd(bot_id+"-mediapy-motor",str(user.id))
+                        data.srem(bot_id+"-mediapy-motor",str(user.id))
                     else:
                         txt = "المعرف خاطئ !"
                     bot('sendMessage',{"chat_id":chat_id,"text":txt,"reply_to_message_id":message_id,"parse_mode":"MarkDown"})
@@ -330,8 +354,7 @@ def new(client,message):
             if text == "مسح المطورين":
                 if channel(user_id):
                     txt = str(str(text).split(sep=" ")[1])
-                    rr = "del-motors"
-                    add(chat_id,user_id,txt,rr,user_id)
+                    data.delete(bot_id+"-mediapy-motor")
                     bot('sendMessage',{"chat_id":chat_id,"text":"تم مسح المطورين بنجاح","reply_to_message_id":message_id,"parse_mode":"MarkDown"})
                 else:
                     channel_url = str(app.get_chat(chat_id=channel_id).invite_link)
@@ -350,7 +373,7 @@ def new(client,message):
                 txt2 = str(data.get(bot_id+"-mediapy-txt2").decode()) if data.get(bot_id+"-mediapy-txt2") else "اضغط هنا"
                 res = InlineKeyboardMarkup([[InlineKeyboardButton(text=txt2,url=channel_url)]])
                 bot("sendMessage",{"chat_id":chat_id,"text":txt1,"reply_to_message_id":message_id,"parse_mode":"MarkDown","reply_markup":res})
-        if text in ["المنظفين الاساسيين","المنظفين الاساسين"]:
+        if text == "المنظفين الاساسيين " or text == "المنظفين الاساسين":
             if channel(user_id):
                 if sudos(chat_id,user_id):
                     t = [str(i.decode()) for i in data.sinter(bot_id+"-mediapy-su-"+str(chat_id))]
@@ -402,23 +425,10 @@ def new(client,message):
                 txt2 = str(data.get(bot_id+"-mediapy-txt2").decode()) if data.get(bot_id+"-mediapy-txt2") else "اضغط هنا"
                 res = InlineKeyboardMarkup([[InlineKeyboardButton(text=txt2,url=channel_url)]])
                 bot("sendMessage",{"chat_id":chat_id,"text":txt1,"reply_to_message_id":message_id,"parse_mode":"MarkDown","reply_markup":res})
-        if text == "مسح المطورين":
-            if channel(user_id):
-                if str(user_id) == str(sudo):
-                    rr = "del-motors"
-                    add(chat_id,user_id,text,rr,user_id)
-                    bot('sendMessage',{"chat_id":chat_id,"text":"تم مسح المطورين بنجاح","reply_to_message_id":message_id,"parse_mode":"MarkDown"})
-            else:
-                channel_url = str(app.get_chat(chat_id=channel_id).invite_link)
-                txt1 = str(data.get(bot_id+"-mediapy-txt1").decode()) if data.get(bot_id+"-mediapy-txt1") else "*عذرا عزيزي عليك الاشتراك في القناة اولا*"
-                txt2 = str(data.get(bot_id+"-mediapy-txt2").decode()) if data.get(bot_id+"-mediapy-txt2") else "اضغط هنا"
-                res = InlineKeyboardMarkup([[InlineKeyboardButton(text=txt2,url=channel_url)]])
-                bot("sendMessage",{"chat_id":chat_id,"text":txt1,"reply_to_message_id":message_id,"parse_mode":"MarkDown","reply_markup":res})
         elif text == "مسح المنظفين":
             if channel(user_id):
                 if manager(chat_id,user_id):
-                    rr = "del-admins"
-                    add(chat_id,user_id,text,rr,user_id)
+                    data.delete(bot_id+"-mediapy-sudos-"+str(chat_id))
                     bot('sendMessage',{"chat_id":chat_id,"text":"تم مسح المنظفين بنجاح","reply_to_message_id":message_id,"parse_mode":"MarkDown"})
             else:
                 channel_url = str(app.get_chat(chat_id=channel_id).invite_link)
@@ -429,8 +439,7 @@ def new(client,message):
         elif text == "مسح المنظفين الاساسين" or text == "مسح المنظفين الاساسيين":
             if channel(user_id):
                 if sudos(chat_id,user_id):
-                    rr = "del-managers"
-                    add(chat_id,user_id,text,rr,user_id)
+                    data.delete(bot_id+"-mediapy-su-"+str(chat_id))
                     bot('sendMessage',{"chat_id":chat_id,"text":"تم مسح المنظفين الاساسيين بنجاح","reply_to_message_id":message_id,"parse_mode":"MarkDown"})
             else:
                 channel_url = str(app.get_chat(chat_id=channel_id).invite_link)
@@ -439,29 +448,59 @@ def new(client,message):
                 res = InlineKeyboardMarkup([[InlineKeyboardButton(text=txt2,url=channel_url)]])
                 bot("sendMessage",{"chat_id":chat_id,"text":txt1,"reply_to_message_id":message_id,"parse_mode":"MarkDown","reply_markup":res})
             if message.reply_to_message:
-                if str(text) in adm:
-                    txt = str(str(text).split(sep=" ")[1])
-                    res = add(chat_id,user_id,txt,"a",message.reply_to_message.from_user.id)
-                    if res == "channel":
+                if text == "رفع مطور" or text == "اضف مطور":
+                    if str(user_id) == str(sudo):
+                        data.sadd(bot_id+"-mediapy-motor",str(message.reply_to_message.from_user.id))
+                        txtt = f"تم رفع العضو [{str(message.reply_to_message.from_user.first_name)}](tg://user?id={str(message.reply_to_message.from_user.id)}) مطو بنجاح"
+                elif text == "تنزيل مطور" or text == "حذف مطور":
+                    if str(user_id) == str(sudo):
+                        data.srem(bot_id+"-mediapy-motor",str(message.reply_to_message.from_user.id))
+                        txtt = "تم تنزيل العضو [{str(message.reply_to_message.from_user.first_name)}](tg://user?id={str(message.reply_to_message.from_user.id)}) مطور بنجاح"
+                        bot('sendMessage',{"chat_id":chat_id,"text":txtt,"reply_to_message_id":message_id,"parse_mode":"MarkDown"})
+                if text == "رفع منظف اساسي" or text == "اضف مطور اساسي":
+                    if channel(user_id):
+                        if sudos(chat_id,user_id):
+                            data.sadd(bot_id+"-mediapy-su-"+str(chat_id),str(message.reply_to_message.from_user.id))
+                            txtt = f"تم رفع العضو [{str(message.reply_to_message.from_user.first_name)}](tg://user?id={str(message.reply_to_message.from_user.id)}) منظف اساسي بنجاح"
+                            bot('sendMessage',{"chat_id":chat_id,"text":txtt,"reply_to_message_id":message_id,"parse_mode":"MarkDown"})
+                    else:
                         channel_url = str(app.get_chat(chat_id=channel_id).invite_link)
                         txt1 = str(data.get(bot_id+"-mediapy-txt1").decode()) if data.get(bot_id+"-mediapy-txt1") else "*عذرا عزيزي عليك الاشتراك في القناة اولا*"
                         txt2 = str(data.get(bot_id+"-mediapy-txt2").decode()) if data.get(bot_id+"-mediapy-txt2") else "اضغط هنا"
                         res = InlineKeyboardMarkup([[InlineKeyboardButton(text=txt2,url=channel_url)]])
                         bot("sendMessage",{"chat_id":chat_id,"text":txt1,"reply_to_message_id":message_id,"parse_mode":"MarkDown","reply_markup":res})
-                    elif res == True:
-                        txtt = "تم رفع العضو {name} {ad} بنجاح".format(ad=txt,name=message.reply_to_message.from_user.first_name)
-                        bot('sendMessage',{"chat_id":chat_id,"text":txtt,"reply_to_message_id":message_id,"parse_mode":"MarkDown"})
-                elif str(text) in rdm:
-                    txt = str(str(text).split(sep=" ")[1])
-                    rr = "d"
-                    ress = add(chat_id,user_id,txt,rr,message.reply_to_message.from_user.id)
-                    if ress == "channel":
+                elif text == "تنزيل منظف اساسي" or text == "حذف منظف اساسي":
+                    if channel(user_id):
+                        if sudos(chat_id,user_id):
+                            data.srem(bot_id+"-mediapy-su-"+str(chat_id),str(message.reply_to_message.from_user.id))
+                            txtt = f"تم تنزيل العضو [{str(message.reply_to_message.from_user.first_name)}](tg://user?id={str(message.reply_to_message.from_user.id)}) منظف اساسي بنجاح"
+                            bot('sendMessage',{"chat_id":chat_id,"text":txtt,"reply_to_message_id":message_id,"parse_mode":"MarkDown"})
+                    else:
                         channel_url = str(app.get_chat(chat_id=channel_id).invite_link)
                         txt1 = str(data.get(bot_id+"-mediapy-txt1").decode()) if data.get(bot_id+"-mediapy-txt1") else "*عذرا عزيزي عليك الاشتراك في القناة اولا*"
                         txt2 = str(data.get(bot_id+"-mediapy-txt2").decode()) if data.get(bot_id+"-mediapy-txt2") else "اضغط هنا"
                         res = InlineKeyboardMarkup([[InlineKeyboardButton(text=txt2,url=channel_url)]])
                         bot("sendMessage",{"chat_id":chat_id,"text":txt1,"reply_to_message_id":message_id,"parse_mode":"MarkDown","reply_markup":res})
-                    elif ress == True:
-                        txtt = "تم تنزيل العضو {name} {ad} بنجاح".format(ad=txt,name=message.reply_to_message.from_user.first_name)
-                        bot('sendMessage',{"chat_id":chat_id,"text":txtt,"reply_to_message_id":message_id,"parse_mode":"MarkDown"})
-            
+                if manager(chat_id,user_id):
+                    if text == "رفع منظف" or text == "اضف منظف":
+                        if channel(user_id):
+                            data.sadd(bot_id+"-mediapy-sudos-"+str(chat_id),str(message.reply_to_message.from_user.id))
+                            txtt = f"تم رفع العضو [{str(message.reply_to_message.from_user.first_name)}](tg://user?id={str(message.reply_to_message.from_user.id)}) منظف بنجاح"
+                            bot('sendMessage',{"chat_id":chat_id,"text":txtt,"reply_to_message_id":message_id,"parse_mode":"MarkDown"})
+                        else:
+                            channel_url = str(app.get_chat(chat_id=channel_id).invite_link)
+                            txt1 = str(data.get(bot_id+"-mediapy-txt1").decode()) if data.get(bot_id+"-mediapy-txt1") else "*عذرا عزيزي عليك الاشتراك في القناة اولا*"
+                            txt2 = str(data.get(bot_id+"-mediapy-txt2").decode()) if data.get(bot_id+"-mediapy-txt2") else "اضغط هنا"
+                            res = InlineKeyboardMarkup([[InlineKeyboardButton(text=txt2,url=channel_url)]])
+                            bot("sendMessage",{"chat_id":chat_id,"text":txt1,"reply_to_message_id":message_id,"parse_mode":"MarkDown","reply_markup":res})
+                    elif text == "تنزيل منظف" or text == "حذف منظف":
+                        if channel(user_id):
+                            data.srem(bot_id+"-mediapy-sudos-"+str(chat_id),str(message.reply_to_message.from_user.id))
+                            txtt = f"تم تنزيل العضو [{str(message.reply_to_message.from_user.first_name)}](tg://user?id={str(message.reply_to_message.from_user.id)}) منظف بنجاح"
+                            bot('sendMessage',{"chat_id":chat_id,"text":txtt,"reply_to_message_id":message_id,"parse_mode":"MarkDown"})
+                        else:
+                            channel_url = str(app.get_chat(chat_id=channel_id).invite_link)
+                            txt1 = str(data.get(bot_id+"-mediapy-txt1").decode()) if data.get(bot_id+"-mediapy-txt1") else "*عذرا عزيزي عليك الاشتراك في القناة اولا*"
+                            txt2 = str(data.get(bot_id+"-mediapy-txt2").decode()) if data.get(bot_id+"-mediapy-txt2") else "اضغط هنا"
+                            res = InlineKeyboardMarkup([[InlineKeyboardButton(text=txt2,url=channel_url)]])
+                            bot("sendMessage",{"chat_id":chat_id,"text":txt1,"reply_to_message_id":message_id,"parse_mode":"MarkDown","reply_markup":res})
