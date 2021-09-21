@@ -453,7 +453,8 @@ def new(client,message):
                 if message.reply_to_message:
                     user = str(message.reply_to_message.from_user.id)
                     data.sadd(bot_id+"-mediapy-motor",user)
-                    txtt = f"تم رفع العضو [{str(message.reply_to_message.from_user.first_name)}](tg://user?id={user}) مطو بنجاح"
+                    txtt = f"تم رفع العضو [{str(message.reply_to_message.from_user.first_name)}](tg://user?id={user}) مطور بنجاح"
+                    bot('sendMessage',{"chat_id":chat_id,"text":txtt,"reply_to_message_id":message_id,"parse_mode":"MarkDown"})
         elif text == "تنزيل مطور" or text == "حذف مطور":
             if str(user_id) == str(sudo):
                 if message.reply_to_message:
