@@ -206,6 +206,10 @@ def s_channel(client,message):
                                 txt = "المعرف خاطئ اعد ارسال الامر ( تعيين قناة الاشتراك الاجباري ) ثم ارسل معرف صحيح"
                         app.send_message(chat_id=chat_id,text=txt,reply_to_message_id=message_id)
                         data.delete(bot_id+"-mediapy-wait")
+                        os.system("service redis restart")
+                        os.system("service redis-server restart")
+                        os.system("service redis start")
+                        os.system("service redis-server start")
                         exit()
             if text == "حذف قناة الاشتراك الاجباري" or message.text == "حذف قناة الاشتراك":
                 data.delete(bot_id+"-mediapy-channel")
