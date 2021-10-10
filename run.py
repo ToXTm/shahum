@@ -13,7 +13,7 @@ data = redis.Redis("127.0.0.1",6379)
 
 @app.on_message()
 def one(client,message):
-    if str(message.chat.id) in [str(i.decode()) for i in data.sinter(bot_id+"-mediapy-auto")]:
+    if data.sismember(bot_id+"-mediapy-auto",str(message.chat.id)):
         tti = str(data.get(bot_id+"mediapy-time-"+str(message.chat.id)).decode())
         minute = str(tti.split(sep=":")[1])
         if str(datetime.datetime.now().hour) != tti and str(datetime.datetime.now().minute) == minute:
