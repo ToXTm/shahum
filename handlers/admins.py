@@ -36,6 +36,7 @@ def del_c(client,message):
                     if manager(chat_id,user_id):
                         bot("sendMessage",{"chat_id":chat_id,"text":"*تم تعطيل المسح التلقائي*","reply_to_message_id":message_id,"parse_mode":"MarkDown"})
                         data.srem(bot_id+"-mediapy-auto",str(chat_id))
+                        data.delete(bot_id+"mediapy-time-"+str(message.chat.id))
             else:
                 channel_url = str(app.get_chat(chat_id=channel_id).invite_link)
                 txt1 = str(data.get(bot_id+"-mediapy-txt1").decode()) if data.get(bot_id+"-mediapy-txt1") else "*عذرا عزيزي عليك الاشتراك في القناة اولا*"
