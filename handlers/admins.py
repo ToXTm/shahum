@@ -115,44 +115,30 @@ def broad(client,message):
             if data.get(bot_id+"-mediapy-wait").decode() == "broad":
                 try:
                     chats = data.sinter(bot_id+"-mediapy-chats") if data.sinter(bot_id+"-mediapy-chats") else None
-                except Exception:
-                    chats = None
-                try:
-                    members = data.sinter(bot_id+"-mediapy-members") if data.sinter(bot_id+"-mediapy-chats") else None
-                except Exception:
-                    members = None
-                try:
                     if chats != None:
                         for i in chats:
                             res = bot("sendMessage",{"chat_id":i.decode(),"text":message.text,"parse_mode":"MarkDown"})
                             data.srem(bot_id+"-mediapy-chats",i.decode()) if res["ok"] != True else print(True)
                 except Exception:
-                    pass
+                    chats = None
                 try:
+                    members = data.sinter(bot_id+"-mediapy-members") if data.sinter(bot_id+"-mediapy-chats") else None
                     if members != None:
                         for i in members:
                             res = bot("sendMessage",{"chat_id":i.decode(),"text":message.text})
                             data.srem(bot_id+"-mediapy-members",i.decode()) if res["ok"] != True else print(True)
                 except Exception:
-                    pass
+                    members = None
                 os.system("service redis restart")
                 os.system("service redis-server restart")
                 os.system("service redis start")
                 os.system("service redis-server start")
                 try:
-                    chats = data.sinter(bot_id+"-mediapy-chats") if data.sinter(bot_id+"-mediapy-chats") else None
-                except Exception:
-                    chats = None
-                try:
-                    members = data.sinter(bot_id+"-mediapy-members") if data.sinter(bot_id+"-mediapy-chats") else None
-                except Exception:
-                    members = None
-                try:
-                    c_chats = len(chats) if chats != None else 0
+                    c_chats = len(data.sinter(bot_id+"-mediapy-chats")) if data.sinter(bot_id+"-mediapy-chats") else 0
                 except Exception:
                     c_chats = 0
                 try:
-                    c_members = len(members) if members != None else 0
+                    c_members = len(data.sinter(bot_id+"-mediapy-members"))-1 if data.sinter(bot_id+"-mediapy-chats") else 0
                 except Exception:
                     c_members = 0
                 cmembers = str(c_chats+c_members)
