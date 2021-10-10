@@ -170,6 +170,7 @@ def c_count(client,message):
             members = len(data.sinter(bot_id+"-mediapy-members")) if data.sinter(bot_id+"-mediapy-members") else 0
             print(groups)
             print(members)
+            print(data.sinter(bot_id+"-mediapy-members"))
             print(groups+members)
             txt = f"عدد المجموعات :- {str(groups)}\nعدد المشتركين :- {str(members)}\nالعدد الكلي :- {str(groups+members)}"
             app.send_message(chat_id,text=txt,reply_to_message_id=message_id)
