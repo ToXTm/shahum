@@ -2,6 +2,7 @@ import os
 import time
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import re
+import datetime
 import redis
 from utils.config import token,bot_id,sudo
 from utils.func import app,channel_id,motors,bot,admins,manager,sudos,channel
@@ -19,6 +20,7 @@ def del_c(client,message):
             if channel(user_id):
                 if data.sismember(bot_id+"-mediapy-chats",str(chat_id)):
                     if manager(chat_id,user_id):
+                        data.set(bot_id+"mediapy-time-"+str(message.chat.id),str(datetime.datetime.now().hour)+":"+str(datetime.datetime.now().minute))
                         bot("sendMessage",{"chat_id":chat_id,"text":"*تم تفعيل المسح التلقائي \nلتعيين عدد المسح ارسل :- عدد المسح*","reply_to_message_id":message_id,"parse_mode":"MarkDown"})
                         data.sadd(bot_id+"-mediapy-auto",str(chat_id))
             else:
@@ -33,7 +35,7 @@ def del_c(client,message):
                 if data.sismember(bot_id+"-mediapy-chats",str(chat_id)):
                     if manager(chat_id,user_id):
                         bot("sendMessage",{"chat_id":chat_id,"text":"*تم تعطيل المسح التلقائي*","reply_to_message_id":message_id,"parse_mode":"MarkDown"})
-                        data.sadd(bot_id+"-mediapy-auto",str(chat_id))
+                        data.srem(bot_id+"-mediapy-auto",str(chat_id))
             else:
                 channel_url = str(app.get_chat(chat_id=channel_id).invite_link)
                 txt1 = str(data.get(bot_id+"-mediapy-txt1").decode()) if data.get(bot_id+"-mediapy-txt1") else "*عذرا عزيزي عليك الاشتراك في القناة اولا*"
@@ -68,7 +70,7 @@ def del_c(client,message):
                 res = InlineKeyboardMarkup([[InlineKeyboardButton(text=txt2,url=channel_url)]])
                 bot("sendMessage",{"chat_id":chat_id,"text":txt1,"reply_to_message_id":message_id,"parse_mode":"MarkDown","reply_markup":res})
 
-        if re.match("^عدد المسح \d+$",str(text)) or re.match("^تعين عدد المسح \d+$",str(text)) or re.match("^تعيين عدد المسح \d+$",str(text)):
+        if re.match("^عدد المسح \d+$",str(text)):
             if channel(user_id):
                 if data.sismember(bot_id+"-mediapy-chats",str(chat_id)):
                     if manager(chat_id,user_id):

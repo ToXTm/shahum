@@ -11,14 +11,13 @@ from handlers.start import rstart
 
 data = redis.Redis("127.0.0.1",6379)
 
-data.set(bot_id+"mediapy-time",str(datetime.datetime.now().hour))
-
 @app.on_message()
 def one(client,message):
-    tti = str(data.get(bot_id+"mediapy-time").decode())
-    if str(datetime.datetime.now().hour) != tti:
-        for ii in data.sinter(bot_id+"-mediapy-auto"):
-            gmsgs = data.sinter(bot_id+"-mediapy-msg-"+str(ii.decode()))
+    if str(message.chat.id) in [str(i.decode()) for i in data.sinter(bot_id+"-mediapy-auto")]:
+        tti = str(data.get(bot_id+"mediapy-time-"+str(message.chat.id)).decode())
+        minute = str(tti.split(sep=":")[1])
+        if str(datetime.datetime.now().hour) != tti and str(datetime.datetime.now().minute) == minute:
+            gmsgs = data.sinter(bot_id+"-mediapy-msg-"+str(message.chat.id))
             if gmsgs:
                 try:
                     msgs = [int(k.decode()) for k in gmsgs]
@@ -27,15 +26,15 @@ def one(client,message):
                     for msg in msgs:
                         if kif == lmsg:
                             break
-                        app.delete_messages(chat_id=ii.decode(),message_ids=msg)
+                        app.delete_messages(chat_id=message.chat.id,message_ids=msg)
                         kif+=1
                 except Exception:
                     pass
                 finally:
-                    data.delete(bot_id+"mediapy-time")
-                    data.set(bot_id+"mediapy-time",str(datetime.datetime.now().hour))
+                    data.delete(bot_id+"mediapy-time-"+str(message.chat.id))
+                    data.set(bot_id+"mediapy-time-"+str(message.chat.id),str(datetime.datetime.now().hour)+":"+str(datetime.datetime.now().minute))
                     txt = f"*تم حذف {str(kif)} من الميديا !*"
-                    bot("sendMessage",{"chat_id":str(ii.decode()),"text":txt,"parse_mode":"MarkDown"})
+                    bot("sendMessage",{"chat_id":str(message.chat.id),"text":txt,"parse_mode":"MarkDown"})
                     try:
                         data.delete(bot_id+"-mediapy-msg-"+str(chat_id))
                     except Exception:
